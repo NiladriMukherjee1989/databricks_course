@@ -11,7 +11,6 @@ drop table if exists banking.metadata.pipeline_runs
 -- CATALOG & SCHEMA
 -- =====================================================
 
-CREATE CATALOG IF NOT EXISTS banking;
 
 CREATE SCHEMA IF NOT EXISTS banking.metadata;
 

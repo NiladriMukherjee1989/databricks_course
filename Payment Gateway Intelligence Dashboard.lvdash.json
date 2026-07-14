@@ -1,0 +1,233 @@
+{
+  "datasets": [
+    {
+      "name": "7befc832",
+      "displayName": "RISK FACTOR",
+      "queryLines": [
+        "select count(customer_id) as TOTAL_CUSTOMER , risk_grade as RISK from banking.bronze.credit_bureau_reports\r\n",
+        " group by risk_grade order by TOTAL_CUSTOMER; "
+      ]
+    },
+    {
+      "name": "401f3c1e",
+      "displayName": "GATEWAY STATUS INSIGHT",
+      "queryLines": [
+        "select count(txn_id) as TOTAL_COUNT_OF_TRANSACTIONS , gateway_name , gateway_status\r\n",
+        "from banking.bronze.payment_gateway_logs group by  gateway_name , gateway_status\r\n",
+        "order by  gateway_name , gateway_status;"
+      ]
+    },
+    {
+      "name": "gateway_stats",
+      "displayName": "Gateway Stats",
+      "queryLines": [
+        "SELECT\n",
+        "  gateway_name,\n",
+        "  gateway_status,\n",
+        "  COUNT(txn_id) AS total_transactions,\n",
+        "  CAST(AVG(CAST(processing_time_ms AS DOUBLE)) AS DECIMAL(10, 2)) AS avg_processing_time_ms\n",
+        "FROM\n",
+        "  banking.bronze.payment_gateway_logs\n",
+        "GROUP BY\n",
+        "  gateway_name,\n",
+        "  gateway_status\n",
+        "ORDER BY\n",
+        "  gateway_name,\n",
+        "  gateway_status"
+      ]
+    },
+    {
+      "name": "gateway_response",
+      "displayName": "Response Code Distribution",
+      "queryLines": [
+        "SELECT\n",
+        "  response_code,\n",
+        "  gateway_name,\n",
+        "  COUNT(txn_id) AS total_transactions\n",
+        "FROM\n",
+        "  banking.bronze.payment_gateway_logs\n",
+        "GROUP BY\n",
+        "  response_code,\n",
+        "  gateway_name\n",
+        "ORDER BY\n",
+        "  total_transactions DESC"
+      ]
+    },
+    {
+      "name": "gateway_summary",
+      "displayName": "Gateway Summary",
+      "queryLines": [
+        "SELECT\n",
+        "  DATE_TRUNC('DAY', TO_TIMESTAMP(processed_timestamp)) AS txn_date,\n",
+        "  COUNT(txn_id) AS total_transactions,\n",
+        "  SUM(\n",
+        "    CASE\n",
+        "      WHEN gateway_status = 'SUCCESS' THEN 1\n",
+        "      ELSE 0\n",
+        "    END\n",
+        "  ) AS successful_transactions,\n",
+        "  SUM(\n",
+        "    CASE\n",
+        "      WHEN gateway_status != 'SUCCESS' THEN 1\n",
+        "      ELSE 0\n",
+        "    END\n",
+        "  ) AS failed_transactions\n",
+        "FROM\n",
+        "  banking.bronze.payment_gateway_logs\n",
+        "GROUP BY\n",
+        "  DATE_TRUNC('DAY', TO_TIMESTAMP(processed_timestamp))\n",
+        "ORDER BY\n",
+        "  txn_date"
+      ]
+    },
+    {
+      "name": "gateway_device",
+      "displayName": "Device Type Breakdown",
+      "queryLines": [
+        "SELECT\n",
+        "  device_type,\n",
+        "  COUNT(txn_id) AS total_transactions\n",
+        "FROM\n",
+        "  banking.bronze.payment_gateway_logs\n",
+        "GROUP BY\n",
+        "  device_type\n",
+        "ORDER BY\n",
+        "  total_transactions DESC"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "04c8e9c5",
+      "displayName": "Untitled page",
+      "layout": [
+        {
+          "widget": {
+            "name": "1f4ef7cc",
+            "multilineTextboxSpec": {
+              "lines": [
+                ""
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "9f17d779",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "gateway_stats",
+                  "fields": [
+                    {
+                      "name": "gateway_name",
+                      "expression": "`gateway_name`"
+                    },
+                    {
+                      "name": "sum(total_transactions)",
+                      "expression": "SUM(`total_transactions`)"
+                    },
+                    {
+                      "name": "sum(avg_processing_time_ms)",
+                      "expression": "SUM(`avg_processing_time_ms`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "gateway_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "sum(total_transactions)"
+                    },
+                    {
+                      "fieldName": "sum(avg_processing_time_ms)"
+                    }
+                  ]
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
